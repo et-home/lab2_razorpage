@@ -42,15 +42,9 @@ public class IndexModel : PageModel
 
         if (!string.IsNullOrEmpty(Query) && !string.IsNullOrEmpty(PublishDate) && useDateFilter)
         {
-            if (isAfter)
-            {
-                games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()) &&
-                                        g.DatePublished >= DateTime.Parse(PublishDate));
-            }
-
-            else
-                games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()) &&
-                                        g.DatePublished <= DateTime.Parse(PublishDate));
+            games = games.Where(g => (isAfter ? g.DatePublished >= DateTime.Parse(PublishDate):
+                                g.DatePublished <= DateTime.Parse(PublishDate)) &&
+                                g.Title.ToLower().Contains(Query.ToLower()));
         }
 
         else if (!useDateFilter && !string.IsNullOrEmpty(Query))
