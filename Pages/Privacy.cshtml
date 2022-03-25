@@ -1,0 +1,13 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Privacy Policy";
+    var x = "hahahaha";
+}
+<h1>@ViewData["Title"]</h1>
+
+<h3>@Model.Message</h3>
+
+<p>@Html.Raw(Model.Greeting)</p>
+
+<p>Use this page to detail your site's @x.</p>
