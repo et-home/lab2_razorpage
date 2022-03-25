@@ -8,58 +8,56 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using razor_ef.Model;
 
-namespace razor_ef.Pages.Games
+namespace razor_ef.Pages.Games;
+
+public class IndexModel : PageModel
 {
-    public class IndexModel : PageModel
+    private readonly GameStoreContext _context;
+    private readonly ILogger<IndexModel> _logger;
+
+    [BindProperty(SupportsGet = true, Name = "Query")]
+    public string Query { get; set; }
+
+    [BindProperty(SupportsGet = true, Name = "PublishDate")]
+    public string PublishDate { get; set; }
+
+    [BindProperty(SupportsGet = true, Name = "isAfter")]
+    public bool isAfter { get; set; }
+
+    [BindProperty(SupportsGet = true, Name = "useDateFilter")]
+    public bool useDateFilter { get; set; }
+
+    public IndexModel(GameStoreContext context, ILogger<IndexModel> logger)
     {
-        private readonly GameStoreContext _context;
-        private readonly ILogger<IndexModel> _logger;
+        _context = context;
+        _logger = logger;
+    }
 
-        [BindProperty (SupportsGet =true, Name = "Query")]
-        public string Query { get; set; }
+    public IList<Game> Game { get; set; }
 
-        [BindProperty (SupportsGet =true, Name = "DateP")]
-        public string DateP{get; set; }
+    public async Task OnGetAsync()
+    {
 
-        [BindProperty (SupportsGet =true, Name = "isBefore")]
-        public bool isBefore { get; set;}
+        var games = from g in _context.Game select g;
 
-        [BindProperty (SupportsGet =true, Name = "isFilterByDate")]
-        public bool isFilterByDate { get; set;}
-
-        public IndexModel(GameStoreContext context, ILogger<IndexModel> logger)
+        if (!string.IsNullOrEmpty(Query) && !string.IsNullOrEmpty(PublishDate) && useDateFilter)
         {
-            _context = context;
-            _logger = logger;
-        }
-
-        public IList<Game> Game { get;set; }
-
-        public async Task OnGetAsync()
-        {
-            var games = from g in _context.Game select g;
-
-            if (!string.IsNullOrEmpty(Query) && !string.IsNullOrEmpty(DateP))
+            if (isAfter)
             {
-                if (isBefore && !isFilterByDate)
-                {
-                    games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()) &&
-                                            g.DatePublished <= DateTime.Parse(DateP));
-                    _logger.Log(LogLevel.Information, DateP);
-                    _logger.Log(LogLevel.Information, Query);
-                }
-                
-                else if (!isBefore && !isFilterByDate) {
-                    games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()) &&
-                                            g.DatePublished >= DateTime.Parse(DateP));
-                }
-
-                else if(isFilterByDate){
-                    games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()));
-                }
+                games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()) &&
+                                        g.DatePublished >= DateTime.Parse(PublishDate));
             }
 
-            Game = await games.ToListAsync();
+            else
+                games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()) &&
+                                        g.DatePublished <= DateTime.Parse(PublishDate));
         }
-    }
+
+        else if (!useDateFilter && !string.IsNullOrEmpty(Query))
+        {
+            games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()));
+        }
+
+        Game = await games.ToListAsync();
+    } 
 }
