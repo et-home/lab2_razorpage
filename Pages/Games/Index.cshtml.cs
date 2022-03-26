@@ -15,10 +15,10 @@ public class IndexModel : PageModel
     private readonly GameStoreContext _context;
     private readonly ILogger<IndexModel> _logger;
 
-    [BindProperty(SupportsGet = true, Name = "Query")]
-    public string Query { get; set; }
+    // [BindProperty(SupportsGet = true, Name = "Query")]
+    public string QueryTitle { get; set; }
 
-    [BindProperty(SupportsGet = true, Name = "PublishDate")]
+    // [BindProperty(SupportsGet = true, Name = "PublishDate")]
     public string PublishDate { get; set; }
 
     [BindProperty(SupportsGet = true, Name = "isAfter")]
@@ -35,21 +35,29 @@ public class IndexModel : PageModel
 
     public IList<Game> Game { get; set; }
 
-    public async Task OnGetAsync()
+    public async Task OnGetAsync(string publishDate)
     {
+        PublishDate = publishDate;
+
+        string queryTitle = "";
+        if(Request.Query.ContainsKey("QueryTitle")){
+            queryTitle = Request.Query["QueryTitle"];
+        }
+
+        // _logger.Log(LogLevel.Information, queryTitle);
 
         var games = from g in _context.Game select g;
 
-        if (!string.IsNullOrEmpty(Query) && !string.IsNullOrEmpty(PublishDate) && useDateFilter)
+        if (!string.IsNullOrEmpty(queryTitle) && !string.IsNullOrEmpty(PublishDate) && useDateFilter)
         {
             games = games.Where(g => (isAfter ? g.DatePublished >= DateTime.Parse(PublishDate):
                                 g.DatePublished <= DateTime.Parse(PublishDate)) &&
-                                g.Title.ToLower().Contains(Query.ToLower()));
+                                g.Title.ToLower().Contains(queryTitle.ToLower()));
         }
 
-        else if (!useDateFilter && !string.IsNullOrEmpty(Query))
+        else if (!useDateFilter && !string.IsNullOrEmpty(queryTitle))
         {
-            games = games.Where(g => g.Title.ToLower().Contains(Query.ToLower()));
+            games = games.Where(g => g.Title.ToLower().Contains(queryTitle.ToLower()));
         }
 
         Game = await games.ToListAsync();

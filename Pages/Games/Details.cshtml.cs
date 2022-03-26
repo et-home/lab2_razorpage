@@ -41,10 +41,12 @@ namespace razor_ef.Pages.Games
                 return NotFound();
             }
 
-            foreach (var qp in Request.Query){
-                QueryValues += $"<div>{qp.Key}:{qp.Value}</div>";
+            // foreach (var qp in Request.Query){
+            //     QueryValues += $"<div>{qp.Key}:{qp.Value}</div>";
+            // }
+            if (Request.Query.ContainsKey("id")) {
+                QueryValues = Request.Query["id"];
             }
-
 
 
             // QName = q_name;
